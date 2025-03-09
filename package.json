@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@fortawesome/free-brands-svg-icons": "^6.7.2",
-    "axios": "^1.8.2",
-    "react-scripts": "^5.0.1"
-  }
-  
-}
