@@ -1,11 +1,20 @@
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation,useNavigate } from "react-router-dom"
 
 import { useState } from "react"
 import Sidebar from "./Sidebar"
-
+import React from "react";
 import { faHome, faList, faCog } from "@fortawesome/free-solid-svg-icons"
+import { useCookies } from "react-cookie";
 
 export default function Navbar(){
+    const [cookies, setCookies] = useCookies(["access_token"]);
+    const navigate = useNavigate();
+  
+    const logout = () => {
+      setCookies("access_token", "");
+      window.localStorage.clear();
+      navigate("/auth");
+    };
     const [showSidebar, setShowSidebar] = useState(false)
     const location = useLocation()
     const links = [
@@ -18,12 +27,6 @@ export default function Navbar(){
         {
             name: "AddRecipe",
             path: "/add-recipe",
-        },
-       
-        {
-            name: "Recipes",
-            path: "/recipes",
-            icon: faList
         },
         {
             name: "Settings",
@@ -63,9 +66,11 @@ export default function Navbar(){
                     <div className="bar"></div>
                     <div className="bar"></div>
                 </div>
+               
             </div>
             
             { showSidebar && <Sidebar close={closeSidebar} links={links} /> }
         </>
     )
+     
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import  Axios  from 'axios';
+
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -12,11 +12,31 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const result =await Axios.post("https://foodokiibackend.onrender.com")
-    console.log('Registration Submitted:', formData);
-    navigate('/login');
+    console.log("Submitting registration:", formData); // Debugging log
+    
+    try {
+      const response = await fetch('http://localhost:3007/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      const data = await response.json();
+      console.log("Server response:", data); // Debugging log
+  
+      if (response.ok) {
+        alert("Registration Successful!");
+        navigate('/login');
+      } else {
+        console.error("Registration Failed:", data.message);
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+    }
   };
-
+  
   const handleChange = (e) => {
     setFormData({
       ...formData,

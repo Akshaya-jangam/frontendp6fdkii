@@ -1,118 +1,105 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import  Axios  from 'axios';
+import React, { useState, useEffect } from "react";
+import "./AddRecipe.css";
+
 const AddRecipe = () => {
-  const [recipe, setRecipe] = useState({
-    title: '',
-    ingredients: [''],
-    instructions: '',
-    cookingTime: '',
-    difficulty: 'easy'
-  });
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const result =await Axios.post("https://foodokiibackend.onrender.com")
-    console.log('Recipe Submitted:', recipe);
-    navigate('/');
-  };
-
-  const handleChange = (e) => {
-    setRecipe({
-      ...recipe,
-      [e.target.name]: e.target.value
+    const [recipe, setRecipe] = useState({
+        Recipe_title: "",
+        Ingredients: "",
+        Instructions: "",
+        Cooking_time: "",
     });
-  };
 
-  const handleIngredientChange = (index, value) => {
-    const newIngredients = [...recipe.ingredients];
-    newIngredients[index] = value;
-    setRecipe({ ...recipe, ingredients: newIngredients });
-  };
+    const [recipes, setRecipes] = useState([]);
+    const token = localStorage.getItem("token"); // Get token from storage
 
-  const addIngredient = () => {
-    setRecipe({ 
-      ...recipe, 
-      ingredients: [...recipe.ingredients, ''] 
-    });
-  };
+    const handleChange = (e) => {
+        setRecipe({ ...recipe, [e.target.name]: e.target.value });
+    };
 
-  return (
-    <div className="form-container">
-      <h2>Add New Recipe</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Recipe Title:</label>
-          <input
-            type="text"
-            name="title"
-            value={recipe.title}
-            onChange={handleChange}
-            required
-          />
-        </div>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch("http://localhost:3007/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": token, // Send token in request header
+                },
+                body: JSON.stringify(recipe),
+            });
 
-        <div className="form-group">
-          <label>Ingredients:</label>
-          {recipe.ingredients.map((ingredient, index) => (
-            <div key={index} className="ingredient-input">
-              <input
-                type="text"
-                value={ingredient}
-                onChange={(e) => handleIngredientChange(index, e.target.value)}
-                required
-              />
+            const data = await response.json();
+            alert(data.message);
+            setRecipe({ Recipe_title: "", Ingredients: "", Instructions: "", Cooking_time: "" });
+
+            fetchRecipes(); // Refresh recipes after adding
+        } catch (error) {
+            console.error("Error adding recipe:", error);
+        }
+    };
+
+    const fetchRecipes = async () => {
+        try {
+            const response = await fetch("http://localhost:3007/recipes", {
+                headers: { "Authorization": token }, // Send token
+            });
+            const data = await response.json();
+            setRecipes(data);
+        } catch (error) {
+            console.error("Error fetching recipes:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchRecipes();
+    }, []);
+
+    return (
+        <div className="container">
+            <div className="form-container">
+                <h2>Add Recipe</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Recipe Title:</label>
+                        <input type="text" name="Recipe_title" value={recipe.Recipe_title} onChange={handleChange} required />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Ingredients:</label>
+                        <textarea name="Ingredients" value={recipe.Ingredients} onChange={handleChange} required />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Instructions:</label>
+                        <textarea name="Instructions" value={recipe.Instructions} onChange={handleChange} required />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Cooking Time (mins):</label>
+                        <input type="number" name="Cooking_time" value={recipe.Cooking_time} onChange={handleChange} required />
+                    </div>
+
+                    <button type="submit" className="submit-btn">Add Recipe</button>
+                </form>
             </div>
-          ))}
-          <button 
-            type="button" 
-            onClick={addIngredient}
-            className="add-button"
-          >
-            Add Ingredient
-          </button>
-        </div>
 
-        <div className="form-group">
-          <label>Instructions:</label>
-          <textarea
-            name="instructions"
-            value={recipe.instructions}
-            onChange={handleChange}
-            required
-            rows="5"
-          />
+            <div className="recipe-list">
+                <h2>Your Recipes</h2>
+                {recipes.length > 0 ? (
+                    recipes.map((rec, index) => (
+                        <div className="recipe-card" key={index}>
+                            <h3>{rec.Recipe_title}</h3>
+                            <p><strong>Ingredients:</strong> {rec.Ingredients}</p>
+                            <p><strong>Instructions:</strong> {rec.Instructions}</p>
+                            <p><strong>Cooking Time:</strong> {rec.Cooking_time} mins</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No recipes yet. Add your first recipe!</p>
+                )}
+            </div>
         </div>
-
-        <div className="form-group">
-          <label>Cooking Time (minutes):</label>
-          <input
-            type="number"
-            name="cookingTime"
-            value={recipe.cookingTime}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Difficulty:</label>
-          <select
-            name="difficulty"
-            value={recipe.difficulty}
-            onChange={handleChange}
-          >
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </div>
-
-        <button type="submit" className="submit-btn">Submit Recipe</button>
-      </form>
-    </div>
-  );
+    );
 };
 
 export default AddRecipe;
